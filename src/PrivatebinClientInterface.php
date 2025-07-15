@@ -1,11 +1,24 @@
 <?php
 
-namespace Cyvax;
+namespace Frdlweb;
 
 use Exception;
 
 interface PrivatebinClientInterface
 {
+    /**
+     * set paste[read] allowed IPs, comma seperated list
+     * @param string | array $ips
+     */
+    public function set_ips(string | array $ips);
+    
+    /**
+     * set the Authorization header.
+     * @param string $token
+     * @param string $type
+     */
+    public function set_token(string $token, string $type = 'Bearer');
+    
     /**
      * set paste password
      * @param string $password
