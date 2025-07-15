@@ -1,11 +1,11 @@
 {
-    "name": "cyvax/privatebin_php",
+    "name": "frdl/smoke-share",
     "type": "library",
-    "description": "Privatebin_PHP is a simple client for PrivateBin written on PHP.",
+    "description": "Smoke-Share Client forked from cyvax/privatebin_php with additional features.",
     "keywords": [
         "privatebin"
     ],
-    "homepage": "https://github.com/cyvax/Privatebin_PHP",
+    "homepage": "https://github.com/frdl/smoke-share",
     "license": "MIT",
     "authors": [
         {
@@ -13,13 +13,15 @@
             "email": "contact@cyvax.fr",
             "homepage": "https://cyvax.fr/",
             "role": "Developer"
+        },
+        
+        {
+            "name": "Melanie Wehowski",
+            "email": "software@frdl.de",
+            "homepage": "https://webfan.de/",
+            "role": "Developer"
         }
     ],
-    "support": {
-        "issues": "https://github.com/cyvax/Privatebin_PHP/issues",
-        "wiki": "https://github.com/cyvax/Privatebin_PHP/wiki",
-        "source": "https://github.com/cyvax/Privatebin_PHP"
-    },
     "require": {
         "php": ">=7.1.0",
         "tuupola/base58": "~2.1.0",
@@ -31,7 +33,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Cyvax\\": "src/"
+            "Frdlweb\\": "src/"
         }
     },
     "prefer-stable": true
