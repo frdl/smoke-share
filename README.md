@@ -1,17 +1,24 @@
-![GitHub License](https://img.shields.io/github/license/cyvax/Privatebin_PHP?style=for-the-badge)
-![version](https://img.shields.io/github/v/tag/cyvax/Privatebin_PHP?label=VERSION&style=for-the-badge)
-![packagist](https://img.shields.io/packagist/dt/cyvax/privatebin_php?style=for-the-badge)
-![Packagist PHP Version Support](https://img.shields.io/packagist/php-v/cyvax/privatebin_php?style=for-the-badge)
-![Codacy grade](https://img.shields.io/codacy/grade/13bbc8be0d134180b8221f014af50e74?style=for-the-badge)
-
-Privatebin_PHP 
+Smoke Share
 -----
 
-Privatebin_PHP is api for [PrivateBin](https://github.com/PrivateBin/PrivateBin/) written on PHP.
+This is an api for [PrivateBin](https://github.com/PrivateBin/PrivateBin/) written on PHP.
+
+**Smoke-Share Client forked from [Privatebin_PHP `cyvax/privatebin_php`](https://github.com/cyvax/Privatebin_PHP).**
+
+What's new?
+-----
+In this fork I add the additional features and options provided by Smoke Share which are not in the Privatebin_PHP base class:
++ **IP restriction (optional)**: The new field `allowedips` in the meta-section allows to send a comma seperated list of IP addresses.
+  ONLY the given IPs are allowed to view the paste, any other clients cannot get the secret.
+ If kept blank this option is disabled and  EVERY client can get the paste.
++ **Authorization (optional)**: Authorization will be added to the API (ToDo).
+  Some features, e.g. never expire forever pastes, or less rate limits, will be restricted to registered and authorized clients.
+  This will be added later, and if done, restrictions are applied if no token is send or if it is invalid, e.g. then the paste will be
+  forced to have a time-limit or the client gets a lower traffic rate, or the max size will be limited.
 
 Installing
 -----
-composer require cyvax/privatebin_php
+composer require frdl/smoke-share
 
 Dependencies
 -----
@@ -19,22 +26,23 @@ Dependencies
 
 Usage
 -----
-By default Privatebin_PHP configured to use `https://paste.i2pd.xyz/` for sending and receiving pastes.
+By default Smoke Share configured to use `https://smoke.tel/share/` for sending and receiving pastes.
 
 You can parse config to a PrivatebinPHP object.
 
 Example :<br>
 fast one with options passed as argument on creation : 
 ```php
-use Cyvax\PrivatebinPHP;
+use Frdlweb\SmokeShare;
 
-$private =new PrivatebinPHP(array(
-    "url" => "https://privatebin.net/",
+$private =new SmokeShare(array(
+    "url" => "https://smoke.tel/share/",
     "text" => "Because ignorance is bliss!",
+    "allowedips" => implode(',', [$_SERVER['SERVER_ADDR'], $_SERVER['REMOTE_ADDR']]),
 ));
 $posted = $private->encode_and_post();
 ```
-It will send string `Because ignorance is bliss!` to [PrivateBin](https://privatebin.net/).
+It will send string `Because ignorance is bliss!` to [Smoke Share](https://smoke.tel/share/).
 
 Check [Wiki](https://github.com/cyvax/Privatebin_PHP/wiki) for documentation.<br>
 
