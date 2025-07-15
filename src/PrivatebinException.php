@@ -1,6 +1,6 @@
 <?php
 
-namespace Cyvax;
+namespace Frdlweb;
 
 use Exception;
 
