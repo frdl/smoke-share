@@ -24,14 +24,18 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+---
++ edited by Frdlweb (https://webfan.de) 2025
+  https://github.com/frdl/smoke-share
+---
 */
 
-namespace Cyvax;
+namespace Frdlweb;
 
 use Exception;
 use Tuupola\Base58;
 
-class PrivatebinPHP implements PrivatebinClientInterface
+class SmokeShare implements PrivatebinClientInterface
 {
     const COMPRESSION_VALUES = [
         "zlib",
@@ -56,7 +60,7 @@ class PrivatebinPHP implements PrivatebinClientInterface
     ];
 
     private $options = [
-        "url" => "https://paste.i2pd.xyz/",
+        "url" => "https://smoke.tel/share/",
         "compression" => "zlib",
         "formatter" => "plaintext",
         "attachment" => null,
@@ -67,6 +71,10 @@ class PrivatebinPHP implements PrivatebinClientInterface
         "burn" => false,
         "text" => "",
         "debug" => false,
+        "allowedips" => "",
+        "token" => null,
+        "token_type" => null,      
+        "ssl" => 1,   
     ];
 
     public function __construct(array $options = [])
@@ -74,6 +82,32 @@ class PrivatebinPHP implements PrivatebinClientInterface
         $this->options = array_merge($this->options, $options);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public function set_ssl(bool $verify)
+    {
+        $this->options['ssl'] = true === $verify ? 1 : 0;
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    public function set_ips(string | array $ips){
+         if(is_string($ips)){
+           $ips = implode(',', $ips);
+         }
+         $this->options['allowedips'] = $ips;
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    public function set_token(string $token, string $type = 'Bearer'){                  
+        $this->options['token'] = $token;                 
+        $this->options['token_type'] = $type;
+    }
+    
     /**
      * {@inheritDoc}
      */
@@ -233,6 +267,7 @@ class PrivatebinPHP implements PrivatebinClientInterface
             "ct" => base64_encode($crypt . $tag),
             "meta" => [
                 "expire" => $this->options["expire"],
+                "allowedips" => $this->options["allowedips"],
             ],
         ];
         if ($this->options["debug"]) {
@@ -257,15 +292,24 @@ class PrivatebinPHP implements PrivatebinClientInterface
     public function post(array $data): array
     {
         if (array_key_exists("data", $data) && array_key_exists("b58", $data) ) {
+
+            $headers = [
+                'Content-Type: application/json',
+                'X-Requested-With: JSONHttpRequest',
+            ];
+
+
+            if(is_string($this->options['token_type']) && !empty($this->options['token_type'])
+                && is_string($this->options['token']) && !empty($this->options['token']) ){
+                      $headers[] = 'Authorization: '.$this->options['token_type'].' '.$this->options['token'];
+            }
+            
             $curl = curl_init($this->options["url"]);
             curl_setopt($curl, CURLOPT_POST, 1);
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data["data"], JSON_UNESCAPED_SLASHES));
-            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, [
-                'Content-Type: application/json',
-                'X-Requested-With: JSONHttpRequest',
-            ]);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, $this->options['ssl']);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, $this->options['ssl']);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             $result = json_decode(curl_exec($curl));
             curl_close($curl);
