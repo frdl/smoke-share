@@ -94,7 +94,7 @@ class SmokeShare implements PrivatebinClientInterface
      * {@inheritDoc}
      */
     public function set_ips(string | array $ips){
-         if(is_string($ips)){
+         if(is_array($ips)){
            $ips = implode(',', $ips);
          }
          $this->options['allowedips'] = $ips;
