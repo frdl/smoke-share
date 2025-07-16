@@ -1,7 +1,7 @@
 Smoke Share
 -----
 
-This is an api for [PrivateBin](https://github.com/PrivateBin/PrivateBin/) written on PHP.
+This is an api client for [PrivateBin](https://github.com/PrivateBin/PrivateBin/) written on PHP.
 
 **Smoke-Share Client forked from [Privatebin_PHP `cyvax/privatebin_php`](https://github.com/cyvax/Privatebin_PHP).**
 
@@ -18,7 +18,10 @@ In this fork I add the additional features and options provided by Smoke Share w
 
 Installing
 -----
-composer require frdl/smoke-share
+Via composer:
+`composer require frdl/smoke-share`
+
+[Source code at Github](https://github.com/frdl/smoke-share)
 
 Dependencies
 -----
