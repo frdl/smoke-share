@@ -45,6 +45,54 @@ $posted = $private->encode_and_post();
 It will send string `Because ignorance is bliss!` to [Smoke Share](https://smoke.tel/share/).
 
 Check [Wiki](https://github.com/cyvax/Privatebin_PHP/wiki) for documentation.<br>
+The following methods where added by this fork:
+
+Require valid SSL certificate
+-----
+Should the PrivateBin Instance be required to have a valid ssl certificate?
+```php
+public function set_ssl(bool $verify)
+```
+```php
+// $private->set_ssl(false); // NOT recommended!
+$private->set_ssl(true);   // default
+```
+
+IP restriction by whitelist
+-----
+Optionally you can specify one ore more IP addresses which are allowed to get, read and decrypt the paste.
+Any client with an IP not listed in this list will not be able to get the paste.
+The default value is empty and this restriction is disabled.
+*This feature is available in my own fork ONLY and will not be supported by most privatebin instances so far!*
+```php
+public function set_ips(string | array $ips)
+```
+```php
+$private->set_ips([$_SERVER['SERVER_ADDR'], $_SERVER['REMOTE_ADDR'], '8.8.8.8', 'IP of authorized reciever, invalid IPs are ignored']);  
+```
+
+Send an Authorization header to the API
+-----
+Optionally you can send an Authorization header along with the HTTP-Request to the privatebin server.
+```
+Authorization: [TYPE] [TOKEN]
+```
+This can be used optionally to request rate limit rates or features like never expire pastes from the server.
+
+```php
+ public function set_token(string $token, string $type = 'Bearer')
+```
+```php
+$private->set_token('abc123...', 'Basic');  
+```
+
+GET and decrypt a paste [TODO]
+-----
+Unfortunately this is not working yet. Maybe anyone can help further?
+```php
+public function privatebin_get(string $url, ?string $password = null)
+```
+
 
 License
 -------
