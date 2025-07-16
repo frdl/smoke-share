@@ -1,4 +1,5 @@
-<?php
+<?php 
+
 
 declare(strict_types = 1);
 
@@ -229,6 +230,112 @@ class SmokeShare implements PrivatebinClientInterface
         return $paste_data;
     }
 
+	
+/**	
+ * Holt und entschlüsselt einen PrivateBin-Paste mit optionalem Passwort.
+ *
+ * @param string $url PrivateBin-URL mit Fragment (#...)
+ * @param string|null $password Optionales Passwort für den Paste
+ * @return string Entschlüsselter Inhalt
+ * @throws Exception bei Fehlern
+ */
+ public function privatebin_get(string $url, ?string $password = null): string {
+    // === 1. Fragment extrahieren ===
+    $parts = parse_url($url);
+    if (!isset($parts['fragment'])) {
+        throw new Exception("Kein Fragment in der URL gefunden.");
+    }
+    $key_b58 = $parts['fragment'];
+ //   $key_bin = Base58::decode($key_b58); // raw binary key
+       $base58 = new Base58(["characters" => Base58::BITCOIN]);
+	 $key_bin = $base58->decode($key_b58);
+	 
+    // === 2. Paste-ID aus Query-String extrahieren ===
+    parse_str($parts['query'] ?? '', $qs);
+    $pasteId = array_key_first($qs);
+    if (!$pasteId) {
+        throw new Exception("Keine gültige Paste-ID in der URL.");
+    }
+
+    // === 3. PrivateBin-API abrufen ===
+    $apiUrl = rtrim($parts['scheme'] . '://' . $parts['host'] . $parts['path'], '/') . '/?' . $pasteId;
+    $ch = curl_init($apiUrl);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            'X-Requested-With: JSONHttpRequest',
+            'Accept: application/json'
+        ],
+		CURLOPT_SSL_VERIFYHOST => $this->options['ssl'],
+		CURLOPT_SSL_VERIFYPEER => $this->options['ssl'],
+    ]);
+	 
+    $response = curl_exec($ch);
+    if (curl_errno($ch)) {
+        throw new Exception('cURL-Fehler: ' . curl_error($ch));
+    }
+    curl_close($ch);
+
+    $json = json_decode($response, true);  
+    if (!isset($json['ct'], $json['adata'])) {
+        throw new Exception("Ungültiges API-Antwortformat.");
+    }
+
+    // === 4. Entschlüsselungsparameter extrahieren ===
+    [$iv_b64, $salt_b64, $iterations, $keysize_bits, , , $compression] = $json['adata'];
+    $iv = base64_decode($iv_b64);
+    $salt = base64_decode($salt_b64);
+    $iterations = (int)$iterations;
+    $keysize_bytes = (int)$keysize_bits / 8;
+
+    $ciphertext_full = base64_decode($json['ct']);
+    $gcm_tag_len = 16;
+    $gcm_tag = substr($ciphertext_full, -$gcm_tag_len);
+    $ciphertext = substr($ciphertext_full, 0, -$gcm_tag_len);
+
+    // === 5. Kombiniere base58-Key + Passwort ===
+    $key_input = $key_bin;
+    if ($password !== null) {
+        $key_input .= $password; // binary key + utf8 pw
+    }
+
+    // === 6. Key-Derivation mit PBKDF2 ===
+    $derived_key = hash_pbkdf2(
+        'sha256',
+        $key_input,
+        $salt,
+        $iterations,
+        $keysize_bytes,
+        true
+    );
+
+    // === 7. AES-GCM Entschlüsselung ===
+    $plaintext = openssl_decrypt(
+        $ciphertext,
+        "aes-{$keysize_bits}-gcm",
+        $derived_key,
+        \OPENSSL_RAW_DATA,
+        $iv,
+        $gcm_tag
+    );
+
+    if ($plaintext === false) {
+        throw new Exception("Entschlüsselung fehlgeschlagen – evtl. falsches Passwort?");
+    }
+
+    // === 8. Optional dekomprimieren ===
+    if ($compression === 'zlib') {
+        $plaintext = gzdecode($plaintext);
+        if ($plaintext === false) {
+            throw new Exception("Dekomprimierung fehlgeschlagen.");
+        }
+    }
+
+    return $plaintext;
+}
+	
+	
+	
     /**
      * {@inheritDoc}
      * @throws PrivatebinException
