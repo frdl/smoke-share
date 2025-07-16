@@ -88,7 +88,7 @@ $private->set_token('abc123...', 'Basic');
 
 GET and decrypt a paste [TODO]
 -----
-Unfortunately this is not working yet. Maybe anyone can help further?
+Unfortunately [this is not working yet](https://github.com/frdl/smoke-share/blob/6977a9f020bb490ee3358d1eb0876b7a795483e6/src/SmokeShare.php#L242C2-L242C71). Maybe anyone can help further?
 ```php
 public function privatebin_get(string $url, ?string $password = null)
 ```
